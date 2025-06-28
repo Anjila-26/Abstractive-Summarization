@@ -22,6 +22,61 @@ This project implements a sophisticated text summarization model using a bidirec
 - **Maximum Text Length**: 800 tokens
 - **Maximum Summary Length**: 150 tokens
 
+### Architecture Diagrams
+
+#### High-Level Architecture Flow
+```
+Input Text (800 tokens)
+        ↓
+   Text Embedding (GloVe 100d)
+        ↓
+┌─────────────────────────────┐
+│   Bidirectional LSTM       │
+│  ←─── LSTM(128) ───→       │
+│  ←─── LSTM(128) ───→       │
+└─────────────────────────────┘
+        ↓
+   Encoder States (h, c)
+        ↓
+┌─────────────────────────────┐
+│     Decoder LSTM(256)       │
+│   + Attention Mechanism     │
+└─────────────────────────────┘
+        ↓
+   TimeDistributed Dense
+        ↓
+   Summary Output (150 tokens)
+```
+
+#### Attention Mechanism Detail
+```
+Encoder Outputs    Decoder Hidden State
+     (S₁...Sₙ)           (hⱼ)
+        │                 │
+        ▼                 ▼
+    S·Wₐ              hⱼ·Uₐ
+        │                 │
+        └─────────────────┘
+                │
+                ▼
+           tanh(S·Wₐ + hⱼ·Uₐ)
+                │
+                ▼
+            Vₐ·tanh(...)
+                │
+                ▼
+            softmax(eᵢ)
+                │
+                ▼
+           Context Vector (cᵢ)
+```
+
+#### Complete Model Architecture
+The notebook automatically generates a detailed architecture diagram saved as `seq2seq_encoder_decoder.png` showing:
+- Layer connections and shapes
+- Input/output dimensions
+- Model parameters and flow
+
 ## Dataset
 
 - **Source**: Amazon Fine Food Reviews dataset
@@ -54,6 +109,7 @@ This project implements a sophisticated text summarization model using a bidirec
 ```
 ├── bi-lstm-seq2seq.ipynb    # Main notebook with model implementation
 ├── README.md                # This documentation
+├── seq2seq_encoder_decoder.png # Generated model architecture diagram
 ├── summary.json             # Saved model architecture
 ├── summary.weights.h5       # Saved model weights
 ├── encoder_model.h5         # Encoder model for inference
@@ -191,6 +247,28 @@ The notebook saves multiple components for easy inference:
 
 ### Attention Visualization
 The model saves attention weights, enabling visualization of which parts of the input the model focuses on during summary generation.
+
+### Architecture Visualization
+The notebook automatically generates a detailed model architecture diagram (`seq2seq_encoder_decoder.png`) using Keras' `plot_model` function. This diagram shows:
+- Complete layer connectivity
+- Input/output tensor shapes
+- Parameter counts for each layer
+- Data flow through the network
+
+To view the architecture diagram after training:
+```python
+from tensorflow.keras.utils import plot_model
+
+plot_model(
+    model,
+    to_file='./seq2seq_encoder_decoder.png',
+    show_shapes=True,
+    show_layer_names=True,
+    rankdir='TB',
+    expand_nested=False,
+    dpi=96
+)
+```
 
 ## References
 
